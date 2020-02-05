@@ -1,1 +1,144 @@
-package org.firstinspires.ftc.teamcode; import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode; import com.qualcomm.robotcore.hardware.TouchSensor; import com.qualcomm.robotcore.eventloop.opmode.TeleOp; import com.qualcomm.robotcore.hardware.DcMotor; import com.qualcomm.robotcore.hardware.DcMotorSimple; import com.qualcomm.robotcore.eventloop.opmode.Disabled; import com.qualcomm.robotcore.util.ElapsedTime; import com.qualcomm.robotcore.hardware.HardwareMap; import com.qualcomm.robotcore.hardware.Servo; @TeleOp(name = "Teleop", group = "") public class Teleop extends LinearOpMode { private ElapsedTime runtime = new ElapsedTime(); private DcMotor BackRight; private DcMotor BackLeft; private DcMotor FrontLeft; private DcMotor FrontRight; private DcMotor pullie; private DcMotor slide; private DcMotor griper; private Servo servo_a; private Servo servo_b; // declare motor speed variables double RF; double LF; double RR; double LR; // declare joystick position variabl
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+
+
+@TeleOp(name = "Teleop", group = "")
+public class Teleop extends LinearOpMode {
+
+  private ElapsedTime runtime = new ElapsedTime();
+ 
+  private DcMotor BackRight;
+  private DcMotor BackLeft;
+  private DcMotor FrontLeft;
+  private DcMotor FrontRight;
+
+  private DcMotor pullie;
+  private DcMotor slide;
+  private DcMotor griper;
+
+  private Servo servo_a;
+  private Servo servo_b;
+
+ // declare motor speed variables
+ double RF; double LF; double RR; double LR;
+ // declare joystick position variables
+ double X1; double Y1; double X2; double Y2;
+ // operational constants
+ double joyScale = 0.95;
+ double motorMax = 0.99;
+
+  /**
+   * This function is executed when this Op Mode is selected from the Driver Station.
+   */
+  @Override
+  public void runOpMode() {
+    BackRight = hardwareMap.dcMotor.get("BackRight");
+    BackLeft = hardwareMap.dcMotor.get("BackLeft");
+    FrontLeft = hardwareMap.dcMotor.get("FrontLeft ");
+    FrontRight = hardwareMap.dcMotor.get("FrontRight");
+    pullie = hardwareMap.dcMotor.get("pullie");
+    slide = hardwareMap.dcMotor.get("slide");
+    griper = hardwareMap.dcMotor.get("griper");
+    servo_a = hardwareMap.servo.get("servo_a");
+    servo_b = hardwareMap.servo.get("servo_b");
+
+    // Reverse one of the drive motors.
+    servo_a.setDirection(Servo.Direction.REVERSE);
+    // Reverse the drive motors.
+    
+    FrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+    BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+    
+    pullie.setDirection(DcMotorSimple.Direction.REVERSE);
+    griper.setDirection(DcMotorSimple.Direction.REVERSE);
+    griper.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    
+    waitForStart();
+    if (opModeIsActive()) {
+      // Put run blocks here.
+      while (opModeIsActive()) {
+     
+      telemetry.addData("Status", "Run Time: " + runtime.toString());
+      telemetry.update();
+     
+// Reset speed variables
+      LF = 0; RF = 0; LR = 0; RR = 0;
+     
+// Get joystick values
+      Y1 = -gamepad1.right_stick_y * joyScale; // invert so up is positive
+      X1 = gamepad1.right_stick_x * joyScale;
+      Y2 = -gamepad1.left_stick_y * joyScale; // Y2 is not used at present
+      X2 = gamepad1.left_stick_x * joyScale;
+
+// Forward/back movement
+      LF += Y1; RF += Y1; LR += Y1; RR += Y1;
+
+ // Side to side movement
+      LF += X1; RF -= X1; LR -= X1; RR += X1;
+
+ // Rotation movement
+      LF += X2; RF -= X2; LR += X2; RR -= X2;
+
+ // Clip motor power values to +-motorMax
+      LF = Math.max(-motorMax, Math.min(LF, motorMax));
+      RF = Math.max(-motorMax, Math.min(RF, motorMax));
+      LR = Math.max(-motorMax, Math.min(LR, motorMax));
+      RR = Math.max(-motorMax, Math.min(RR, motorMax));
+
+ // Send values to the motors
+      FrontLeft.setPower(LF);
+      FrontRight.setPower(RF);
+      BackLeft.setPower(LR);
+      BackRight.setPower(RR);
+
+
+
+      pullie.setPower(gamepad2.right_stick_y);
+        
+      if (gamepad2.x == true) {
+        servo_a.setPosition(0);
+        servo_b.setPosition(0);
+      }
+      if (gamepad2.y == true) {
+        servo_a.setPosition(1);
+        servo_b.setPosition(1);
+      }  
+        
+        if (gamepad2.left_trigger==1) 
+          {slide.setPower(1);}
+        else
+          {slide.setPower(0);};
+          
+        if (gamepad2.right_trigger==1) 
+          {slide.setPower(-1);}
+        else
+          {slide.setPower(0);}; 
+                
+        if (gamepad2.right_trigger==0 && gamepad2.left_trigger==0)
+          {slide.setPower(0);};
+        
+        
+        
+        griper.setPower(gamepad2.left_stick_y/2);
+        
+        telemetry.addData("LF", "%.3f", LF);
+        telemetry.addData("RF", "%.3f", RF);
+        telemetry.addData("LR", "%.3f", LR);
+        telemetry.addData("RR", "%.3f", RR);        
+        
+        telemetry.addData("Gripper", griper.getPower());
+        telemetry.update();
+      }
+    }
+  }
+}
+
